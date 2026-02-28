@@ -2,23 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@font-face {
-  font-family: "Jalnan 2";
-  src: local("Jalnan2"),
-    url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Jalnan2.woff2")
-      format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --tracking-25: -0.025em;
   --leading-120: 120%;
 }
-
 
 :root {
   padding: 0;
@@ -62,7 +51,7 @@
 }
 
 @theme inline {
-  --animate-orbit: orbit calc(var(--duration)*1s) linear infinite;
+  --animate-orbit: orbit calc(var(--duration) * 1s) linear infinite;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -102,11 +91,14 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   @keyframes orbit {
-  0% {
-    transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
+    0% {
+      transform: rotate(calc(var(--angle) * 1deg))
+        translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg));
     }
-  100% {
-    transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc((var(--angle) * -1deg) - 360deg));
+    100% {
+      transform: rotate(calc(var(--angle) * 1deg + 360deg))
+        translateY(calc(var(--radius) * 1px))
+        rotate(calc((var(--angle) * -1deg) - 360deg));
     }
   }
 }
