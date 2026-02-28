@@ -23,6 +23,65 @@ function CardResultPage() {
       image.src = src;
     });
 
+  const drawRoundedRect = (
+    context: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number,
+  ) => {
+    context.beginPath();
+    context.moveTo(x + radius, y);
+    context.lineTo(x + width - radius, y);
+    context.quadraticCurveTo(x + width, y, x + width, y + radius);
+    context.lineTo(x + width, y + height - radius);
+    context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    context.lineTo(x + radius, y + height);
+    context.quadraticCurveTo(x, y + height, x, y + height - radius);
+    context.lineTo(x, y + radius);
+    context.quadraticCurveTo(x, y, x + radius, y);
+    context.closePath();
+  };
+
+  const splitLinesByWidth = (
+    context: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+    maxLines: number,
+  ) => {
+    const lines: string[] = [];
+
+    for (const paragraph of text.split("\n")) {
+      let line = "";
+
+      for (const char of paragraph) {
+        const nextLine = line + char;
+
+        if (context.measureText(nextLine).width > maxWidth && line) {
+          lines.push(line);
+          line = char;
+
+          if (lines.length >= maxLines) {
+            return lines;
+          }
+        } else {
+          line = nextLine;
+        }
+      }
+
+      if (line) {
+        lines.push(line);
+      }
+
+      if (lines.length >= maxLines) {
+        return lines;
+      }
+    }
+
+    return lines;
+  };
+
   const createInstagramShareImage = async () => {
     if (!selectedFortune) {
       throw new Error("No selected fortune");
@@ -48,10 +107,10 @@ function CardResultPage() {
     context.fillStyle = "rgba(255, 255, 255, 0.95)";
     context.font = '700 54px "Jalnan 2", sans-serif';
     context.textAlign = "center";
-    context.fillText("사자의 운세", canvas.width / 2, 120);
+    context.fillText("사자의 운세", canvas.width / 2, 110);
 
-    const maxImageWidth = 420;
-    const maxImageHeight = 620;
+    const maxImageWidth = 360;
+    const maxImageHeight = 520;
     const imageRatio = image.width / image.height;
     let drawWidth = maxImageWidth;
     let drawHeight = drawWidth / imageRatio;
@@ -62,56 +121,35 @@ function CardResultPage() {
     }
 
     const imageX = (canvas.width - drawWidth) / 2;
-    const imageY = 180;
+    const imageY = 160;
 
     context.shadowColor = "rgba(0, 0, 0, 0.35)";
     context.shadowBlur = 24;
     context.drawImage(image, imageX, imageY, drawWidth, drawHeight);
     context.shadowBlur = 0;
 
-    const maxLines = 3;
-    const maxWidth = 820;
+    const cardX = 120;
+    const cardY = 710;
+    const cardWidth = 840;
+    const cardHeight = 270;
+
+    drawRoundedRect(context, cardX, cardY, cardWidth, cardHeight, 24);
+    context.fillStyle = "#d1d1d1";
+    context.fill();
+
+    context.fillStyle = "#3d67c2";
+    context.font = '400 42px "Jalnan 2", sans-serif';
+    context.fillText("오늘의 사자 운세", canvas.width / 2, cardY + 70);
+
+    context.fillStyle = "#1f2937";
+    context.font = "600 30px Pretendard, sans-serif";
+
     const description = selectedFortune.description.replace(/\r/g, "");
-    const lines: string[] = [];
+    const lines = splitLinesByWidth(context, description, 720, 4);
+    const lineHeight = 42;
+    const textStartY = cardY + 130;
 
-    context.font = "500 34px Pretendard, sans-serif";
-    context.fillStyle = "rgba(255, 255, 255, 0.94)";
-
-    for (const paragraph of description.split("\n")) {
-      let line = "";
-
-      for (const char of paragraph) {
-        const nextLine = line + char;
-
-        if (context.measureText(nextLine).width > maxWidth && line) {
-          lines.push(line);
-          line = char;
-
-          if (lines.length >= maxLines) {
-            break;
-          }
-        } else {
-          line = nextLine;
-        }
-      }
-
-      if (lines.length >= maxLines) {
-        break;
-      }
-
-      if (line) {
-        lines.push(line);
-      }
-
-      if (lines.length >= maxLines) {
-        break;
-      }
-    }
-
-    const textStartY = 880;
-    const lineHeight = 44;
-
-    lines.slice(0, maxLines).forEach((line, index) => {
+    lines.forEach((line, index) => {
       context.fillText(line, canvas.width / 2, textStartY + lineHeight * index);
     });
 
@@ -144,6 +182,18 @@ function CardResultPage() {
 
   const downloadImage = async (blob: Blob) => {
     const filename = `lion-fortune-${selectedFortune?.id ?? "result"}.png`;
+    const file = new File([blob], filename, { type: "image/png" });
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "사자의 운세",
+        text: "이미지를 저장하거나 인스타그램으로 공유해보세요.",
+      });
+      return;
+    }
+
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -238,14 +288,14 @@ function CardResultPage() {
         className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] md:hidden disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isPreparingImage
-          ? "이미지 다운로드 중..."
+          ? "이미지 준비 중..."
           : isReadyToOpenInstagram
             ? "인스타그램 열기"
-            : "이미지 다운로드하기"}
+            : "이미지 저장하기"}
       </button>
 
       <p className="mt-2 text-[11px] text-white/70 md:hidden">
-        1회 클릭: 이미지 다운로드, 2회 클릭: 인스타그램 열기
+        1회 클릭: 이미지 저장, 2회 클릭: 인스타그램 열기
       </p>
     </section>
   );
