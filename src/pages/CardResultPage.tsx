@@ -17,11 +17,11 @@ function CardResultPage() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <section className="animate-in fade-in zoom-in-95 flex w-full flex-col items-center duration-300">
       <img
         src={selectedFortune.image}
         alt={`fortune-card-${selectedFortune.id}`}
-        className="w-36 shadow-[0_12px_30px_rgba(0,0,0,0.35)]"
+        className="animate-in zoom-in-90 mb-7 w-36 shadow-[0_12px_30px_rgba(0,0,0,0.35)] duration-300"
       />
 
       <FortuneCard
@@ -29,7 +29,7 @@ function CardResultPage() {
         description={selectedFortune.description}
       />
 
-      <div className="mt-2 flex max-w-65.5 gap-4">
+      <div className="mt-4 flex max-w-65.5 gap-4">
         <Button onNavigate={() => navigate("/")}>메인으로</Button>
         <Button
           onNavigate={() =>
@@ -39,7 +39,7 @@ function CardResultPage() {
           멋사 지원하러가기
         </Button>
       </div>
-    </div>
+    </section>
   );
 }
 

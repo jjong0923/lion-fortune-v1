@@ -6,7 +6,7 @@ function MainPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center">
+    <section className="flex flex-col items-center">
       <div className="flex flex-col items-center gap-3">
         <span className="tracking-25 text-[15px] leading-120 font-normal text-white">
           멋쟁이사자처럼이 알려주는
@@ -17,7 +17,7 @@ function MainPage() {
       </div>
       <img src={LogoImg} alt="로고" className="rotate-358" />
       <Button onNavigate={() => navigate("/card")}>시작하기</Button>
-    </div>
+    </section>
   );
 }
 
