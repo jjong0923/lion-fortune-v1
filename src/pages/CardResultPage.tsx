@@ -7,7 +7,8 @@ import { useNavigate, useParams } from "react-router";
 function CardResultPage() {
   const navigate = useNavigate();
   const { cardId } = useParams();
-  const [isSharingToInstagram, setIsSharingToInstagram] = useState(false);
+  const [isPreparingImage, setIsPreparingImage] = useState(false);
+  const [isReadyToOpenInstagram, setIsReadyToOpenInstagram] = useState(false);
   const selectedCardId = Number(cardId);
 
   const selectedFortune =
@@ -184,22 +185,25 @@ function CardResultPage() {
   };
 
   const handleShareToInstagram = async () => {
-    if (!selectedFortune || isSharingToInstagram) {
+    if (!selectedFortune || isPreparingImage) {
       return;
     }
 
-    setIsSharingToInstagram(true);
+    if (isReadyToOpenInstagram) {
+      openInstagram();
+      return;
+    }
+
+    setIsPreparingImage(true);
 
     try {
       const blob = await createInstagramShareImage();
       await downloadImage(blob);
-      window.setTimeout(() => {
-        openInstagram();
-      }, 600);
+      setIsReadyToOpenInstagram(true);
     } catch {
-      openInstagram();
+      setIsReadyToOpenInstagram(false);
     } finally {
-      setIsSharingToInstagram(false);
+      setIsPreparingImage(false);
     }
   };
 
@@ -230,11 +234,19 @@ function CardResultPage() {
       <button
         type="button"
         onClick={handleShareToInstagram}
-        disabled={isSharingToInstagram}
+        disabled={isPreparingImage}
         className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] md:hidden disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isSharingToInstagram ? "이미지 준비 중..." : "인스타그램으로 공유하기"}
+        {isPreparingImage
+          ? "이미지 다운로드 중..."
+          : isReadyToOpenInstagram
+            ? "인스타그램 열기"
+            : "이미지 다운로드하기"}
       </button>
+
+      <p className="mt-2 text-[11px] text-white/70 md:hidden">
+        1회 클릭: 이미지 다운로드, 2회 클릭: 인스타그램 열기
+      </p>
     </section>
   );
 }
