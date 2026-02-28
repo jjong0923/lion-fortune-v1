@@ -1,4 +1,4 @@
-import { OrbitingCircles } from "@/components/ui/orbiting-circles";
+﻿import { OrbitingCircles } from "@/components/ui/orbiting-circles";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import LogoImg from "../assets/logo.png";
@@ -10,18 +10,18 @@ function CardOrbitPage() {
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const outerOrbitCardIds = [0, 1];
   const innerOrbitCardIds = [2, 3, 4];
+  const allCardIds = [...outerOrbitCardIds, ...innerOrbitCardIds];
 
   const handleCardClick = (cardId: number) => {
     setSelectedCardId((prev) => (prev === cardId ? null : cardId));
   };
 
   const handleSelect = () => {
-    if (selectedCardId === null) {
-      alert("카드를 선택해주세요");
-      return;
-    }
+    const randomCardId =
+      allCardIds[Math.floor(Math.random() * allCardIds.length)] ?? 0;
+    const targetCardId = selectedCardId ?? randomCardId;
 
-    navigate(`/result/${selectedCardId + 1}`);
+    navigate(`/result/${targetCardId + 1}`);
   };
 
   return (
