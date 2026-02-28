@@ -126,13 +126,50 @@ function CardResultPage() {
     });
   };
 
-  const downloadImage = (blob: Blob) => {
+  const blobToDataUrl = (blob: Blob) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error("Failed to convert blob to data URL"));
+      };
+      reader.onerror = () => reject(new Error("Failed to read blob"));
+      reader.readAsDataURL(blob);
+    });
+
+  const downloadImage = async (blob: Blob) => {
+    const filename = `lion-fortune-${selectedFortune?.id ?? "result"}.png`;
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      const dataUrl = await blobToDataUrl(blob);
+      const popup = window.open(dataUrl, "_blank", "noopener,noreferrer");
+
+      if (!popup) {
+        window.location.href = dataUrl;
+      }
+
+      return;
+    }
+
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = objectUrl;
-    link.download = `lion-fortune-${selectedFortune?.id ?? "result"}.png`;
+    link.download = filename;
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(objectUrl);
+    link.remove();
+
+    window.setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    }, 1500);
   };
 
   const openInstagram = () => {
@@ -155,8 +192,10 @@ function CardResultPage() {
 
     try {
       const blob = await createInstagramShareImage();
-      downloadImage(blob);
-      openInstagram();
+      await downloadImage(blob);
+      window.setTimeout(() => {
+        openInstagram();
+      }, 600);
     } catch {
       openInstagram();
     } finally {
@@ -183,7 +222,9 @@ function CardResultPage() {
 
       <div className="mt-4 flex max-w-65.5 gap-4">
         <Button onNavigate={() => navigate("/")}>메인으로</Button>
-        <Button onNavigate={() => (window.location.href = "https://www.likelionknu.com")}>멋사 지원하러가기</Button>
+        <Button onNavigate={() => (window.location.href = "https://www.likelionknu.com")}>
+          멋사 지원하러가기
+        </Button>
       </div>
 
       <button
