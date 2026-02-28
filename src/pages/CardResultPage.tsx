@@ -20,10 +20,10 @@ function CardResultPage() {
     <section className="animate-in fade-in zoom-in-95 flex w-full flex-col items-center duration-300">
       <img
         src={selectedFortune.image}
-        alt={`fortune-card-${selectedFortune.id}`}
         loading="eager"
         decoding="async"
         draggable={false}
+        alt={`fortune-card-${selectedFortune.id}`}
         className="animate-in zoom-in-90 mb-7 w-36 shadow-[0_12px_30px_rgba(0,0,0,0.35)] duration-300"
       />
 
