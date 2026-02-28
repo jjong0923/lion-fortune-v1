@@ -126,20 +126,6 @@ function CardResultPage() {
     });
   };
 
-  const copyImageToClipboard = async (blob: Blob) => {
-    if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
-      return false;
-    }
-
-    try {
-      const clipboardItem = new ClipboardItem({ [blob.type]: blob });
-      await navigator.clipboard.write([clipboardItem]);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   const downloadImage = (blob: Blob) => {
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -169,12 +155,7 @@ function CardResultPage() {
 
     try {
       const blob = await createInstagramShareImage();
-      const copied = await copyImageToClipboard(blob);
-
-      if (!copied) {
-        downloadImage(blob);
-      }
-
+      downloadImage(blob);
       openInstagram();
     } catch {
       openInstagram();
