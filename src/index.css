@@ -2,6 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@font-face {
+  font-family: "Jalnan 2";
+  src: local("Jalnan2"),
+    url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Jalnan2.woff2")
+      format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -9,12 +19,14 @@
   --leading-120: 120%;
 }
 
+
 :root {
   padding: 0;
   margin: 0;
 
   font-family: "Jalnan 2";
   font-style: normal;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -134,6 +146,12 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    font-family: "Jalnan 2" !important;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
