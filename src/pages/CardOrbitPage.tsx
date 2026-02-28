@@ -72,15 +72,15 @@ function CardOrbitPage() {
           ))}
         </OrbitingCircles>
       </div>
-      <Button onNavigate={handleSelect}>선택하기</Button>
       {selectedCardId !== null && (
         <>
           <div className="animate-in fade-in absolute inset-0 z-10 rounded-3xl duration-300" />
-          <div className="animate-in fade-in zoom-in-90 absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 duration-300">
+          <div className="animate-in fade-in zoom-in-90 absolute top-1/3 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 duration-300">
             <Card selected onClick={() => setSelectedCardId(null)} />
           </div>
         </>
       )}
+      <Button onNavigate={handleSelect}>선택하기</Button>
     </section>
   );
 }
