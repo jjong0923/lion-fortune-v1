@@ -1,227 +1,252 @@
 import Button from "@/components/Button";
 import FortuneCard from "@/components/FortuneCard";
 import { CARD_FORTUNE_MOCK } from "@/mocks/cardFortuneMock";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+
+function drawRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+}
+
+function splitLinesByWidth(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+) {
+  const lines: string[] = [];
+
+  for (const paragraph of text.split("\n")) {
+    let line = "";
+
+    for (const char of paragraph) {
+      const nextLine = line + char;
+
+      if (context.measureText(nextLine).width > maxWidth && line) {
+        lines.push(line);
+        line = char;
+
+        if (lines.length >= maxLines) {
+          return lines;
+        }
+      } else {
+        line = nextLine;
+      }
+    }
+
+    if (line) {
+      lines.push(line);
+    }
+
+    if (lines.length >= maxLines) {
+      return lines;
+    }
+  }
+
+  return lines;
+}
+
+function loadImage(src: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Failed to load image"));
+    image.src = src;
+  });
+}
+
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Failed to convert blob to data URL"));
+    };
+    reader.onerror = () => reject(new Error("Failed to read blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function createInstagramShareImage(
+  imageSrc: string,
+  description: string,
+) {
+  const image = await loadImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1080;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Failed to create canvas context");
+  }
+
+  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#1F3175");
+  gradient.addColorStop(1, "#0A1136");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = "rgba(255, 255, 255, 0.95)";
+  context.font = '700 54px "Jalnan 2", sans-serif';
+  context.textAlign = "center";
+  context.fillText("사자의 운세", canvas.width / 2, 110);
+
+  const maxImageWidth = 360;
+  const maxImageHeight = 520;
+  const imageRatio = image.width / image.height;
+  let drawWidth = maxImageWidth;
+  let drawHeight = drawWidth / imageRatio;
+
+  if (drawHeight > maxImageHeight) {
+    drawHeight = maxImageHeight;
+    drawWidth = drawHeight * imageRatio;
+  }
+
+  const imageX = (canvas.width - drawWidth) / 2;
+  const imageY = 160;
+
+  context.shadowColor = "rgba(0, 0, 0, 0.35)";
+  context.shadowBlur = 24;
+  context.drawImage(image, imageX, imageY, drawWidth, drawHeight);
+  context.shadowBlur = 0;
+
+  const cardX = 120;
+  const cardY = 710;
+  const cardWidth = 840;
+  const cardHeight = 270;
+
+  drawRoundedRect(context, cardX, cardY, cardWidth, cardHeight, 24);
+  context.fillStyle = "#d1d1d1";
+  context.fill();
+
+  context.fillStyle = "#3d67c2";
+  context.font = '400 42px "Jalnan 2", sans-serif';
+  context.fillText("오늘의 사자 운세", canvas.width / 2, cardY + 70);
+
+  context.fillStyle = "#1f2937";
+  context.font = "600 30px Pretendard, sans-serif";
+
+  const lines = splitLinesByWidth(context, description.replace(/\r/g, ""), 720, 4);
+  const lineHeight = 42;
+  const textStartY = cardY + 130;
+
+  lines.forEach((line, index) => {
+    context.fillText(line, canvas.width / 2, textStartY + lineHeight * index);
+  });
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error("Failed to generate image blob"));
+        return;
+      }
+
+      resolve(blob);
+    }, "image/png");
+  });
+}
 
 function CardResultPage() {
   const navigate = useNavigate();
   const { cardId } = useParams();
+  const selectedCardId = Number(cardId);
+
   const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [isReadyToOpenInstagram, setIsReadyToOpenInstagram] = useState(false);
-  const selectedCardId = Number(cardId);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [iosDataUrl, setIosDataUrl] = useState<string | null>(null);
 
   const selectedFortune =
     CARD_FORTUNE_MOCK.find((item) => item.id === selectedCardId) ??
     CARD_FORTUNE_MOCK[0];
 
-  const loadImage = (src: string) =>
-    new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error("Failed to load image"));
-      image.src = src;
-    });
+  const filename = useMemo(
+    () => `lion-fortune-${selectedFortune?.id ?? "result"}.png`,
+    [selectedFortune],
+  );
 
-  const drawRoundedRect = (
-    context: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radius: number,
-  ) => {
-    context.beginPath();
-    context.moveTo(x + radius, y);
-    context.lineTo(x + width - radius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + radius);
-    context.lineTo(x + width, y + height - radius);
-    context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    context.lineTo(x + radius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - radius);
-    context.lineTo(x, y + radius);
-    context.quadraticCurveTo(x, y, x + radius, y);
-    context.closePath();
-  };
-
-  const splitLinesByWidth = (
-    context: CanvasRenderingContext2D,
-    text: string,
-    maxWidth: number,
-    maxLines: number,
-  ) => {
-    const lines: string[] = [];
-
-    for (const paragraph of text.split("\n")) {
-      let line = "";
-
-      for (const char of paragraph) {
-        const nextLine = line + char;
-
-        if (context.measureText(nextLine).width > maxWidth && line) {
-          lines.push(line);
-          line = char;
-
-          if (lines.length >= maxLines) {
-            return lines;
-          }
-        } else {
-          line = nextLine;
-        }
-      }
-
-      if (line) {
-        lines.push(line);
-      }
-
-      if (lines.length >= maxLines) {
-        return lines;
-      }
-    }
-
-    return lines;
-  };
-
-  const createInstagramShareImage = async () => {
-    if (!selectedFortune) {
-      throw new Error("No selected fortune");
-    }
-
-    const image = await loadImage(selectedFortune.image);
-    const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1080;
-
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("Failed to create canvas context");
-    }
-
-    const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#1F3175");
-    gradient.addColorStop(1, "#0A1136");
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    context.fillStyle = "rgba(255, 255, 255, 0.95)";
-    context.font = '700 54px "Jalnan 2", sans-serif';
-    context.textAlign = "center";
-    context.fillText("사자의 운세", canvas.width / 2, 110);
-
-    const maxImageWidth = 360;
-    const maxImageHeight = 520;
-    const imageRatio = image.width / image.height;
-    let drawWidth = maxImageWidth;
-    let drawHeight = drawWidth / imageRatio;
-
-    if (drawHeight > maxImageHeight) {
-      drawHeight = maxImageHeight;
-      drawWidth = drawHeight * imageRatio;
-    }
-
-    const imageX = (canvas.width - drawWidth) / 2;
-    const imageY = 160;
-
-    context.shadowColor = "rgba(0, 0, 0, 0.35)";
-    context.shadowBlur = 24;
-    context.drawImage(image, imageX, imageY, drawWidth, drawHeight);
-    context.shadowBlur = 0;
-
-    const cardX = 120;
-    const cardY = 710;
-    const cardWidth = 840;
-    const cardHeight = 270;
-
-    drawRoundedRect(context, cardX, cardY, cardWidth, cardHeight, 24);
-    context.fillStyle = "#d1d1d1";
-    context.fill();
-
-    context.fillStyle = "#3d67c2";
-    context.font = '400 42px "Jalnan 2", sans-serif';
-    context.fillText("오늘의 사자 운세", canvas.width / 2, cardY + 70);
-
-    context.fillStyle = "#1f2937";
-    context.font = "600 30px Pretendard, sans-serif";
-
-    const description = selectedFortune.description.replace(/\r/g, "");
-    const lines = splitLinesByWidth(context, description, 720, 4);
-    const lineHeight = 42;
-    const textStartY = cardY + 130;
-
-    lines.forEach((line, index) => {
-      context.fillText(line, canvas.width / 2, textStartY + lineHeight * index);
-    });
-
-    return new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error("Failed to generate image blob"));
-          return;
-        }
-
-        resolve(blob);
-      }, "image/png");
-    });
-  };
-
-  const blobToDataUrl = (blob: Blob) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          resolve(reader.result);
-          return;
-        }
-
-        reject(new Error("Failed to convert blob to data URL"));
-      };
-      reader.onerror = () => reject(new Error("Failed to read blob"));
-      reader.readAsDataURL(blob);
-    });
-
-  const downloadImage = async (blob: Blob) => {
-    const filename = `lion-fortune-${selectedFortune?.id ?? "result"}.png`;
-    const file = new File([blob], filename, { type: "image/png" });
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (isMobile && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: "사자의 운세",
-        text: "이미지를 저장하거나 인스타그램으로 공유해보세요.",
-      });
-      return;
-    }
-
-    const isIOS =
+  const isIOS = useMemo(
+    () =>
       /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+    [],
+  );
 
-    if (isIOS) {
-      const dataUrl = await blobToDataUrl(blob);
-      const popup = window.open(dataUrl, "_blank", "noopener,noreferrer");
+  useEffect(() => {
+    let revokedUrl: string | null = null;
+    let cancelled = false;
 
-      if (!popup) {
-        window.location.href = dataUrl;
+    const prepare = async () => {
+      if (!selectedFortune) {
+        return;
       }
 
-      return;
-    }
+      setIsPreparingImage(true);
+      setIsReadyToOpenInstagram(false);
+      setDownloadUrl(null);
+      setIosDataUrl(null);
 
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = objectUrl;
-    link.download = filename;
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+      try {
+        const blob = await createInstagramShareImage(
+          selectedFortune.image,
+          selectedFortune.description,
+        );
 
-    window.setTimeout(() => {
-      URL.revokeObjectURL(objectUrl);
-    }, 1500);
-  };
+        if (cancelled) {
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        revokedUrl = objectUrl;
+        setDownloadUrl(objectUrl);
+
+        if (isIOS) {
+          const dataUrl = await blobToDataUrl(blob);
+
+          if (!cancelled) {
+            setIosDataUrl(dataUrl);
+          }
+        }
+      } finally {
+        if (!cancelled) {
+          setIsPreparingImage(false);
+        }
+      }
+    };
+
+    void prepare();
+
+    return () => {
+      cancelled = true;
+
+      if (revokedUrl) {
+        URL.revokeObjectURL(revokedUrl);
+      }
+    };
+  }, [isIOS, selectedFortune]);
 
   const openInstagram = () => {
     const appUrl = "instagram://";
@@ -234,8 +259,8 @@ function CardResultPage() {
     }, 900);
   };
 
-  const handleShareToInstagram = async () => {
-    if (!selectedFortune || isPreparingImage) {
+  const handleDownloadAndShare = () => {
+    if (isPreparingImage || !selectedFortune) {
       return;
     }
 
@@ -244,17 +269,34 @@ function CardResultPage() {
       return;
     }
 
-    setIsPreparingImage(true);
+    if (isIOS) {
+      if (!iosDataUrl) {
+        return;
+      }
 
-    try {
-      const blob = await createInstagramShareImage();
-      await downloadImage(blob);
+      const popup = window.open(iosDataUrl, "_blank", "noopener,noreferrer");
+
+      if (!popup) {
+        window.location.href = iosDataUrl;
+      }
+
       setIsReadyToOpenInstagram(true);
-    } catch {
-      setIsReadyToOpenInstagram(false);
-    } finally {
-      setIsPreparingImage(false);
+      return;
     }
+
+    if (!downloadUrl) {
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = filename;
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setIsReadyToOpenInstagram(true);
   };
 
   if (!selectedFortune) {
@@ -283,7 +325,7 @@ function CardResultPage() {
 
       <button
         type="button"
-        onClick={handleShareToInstagram}
+        onClick={handleDownloadAndShare}
         disabled={isPreparingImage}
         className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] md:hidden disabled:cursor-not-allowed disabled:opacity-70"
       >
