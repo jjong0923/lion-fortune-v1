@@ -30,7 +30,7 @@ function CardOrbitPage() {
 
   return (
     <section className="relative mt-35 flex flex-col gap-40">
-      <img src={LogoImg} className="absolute opacity-80" />
+      <img src={LogoImg} className="absolute opacity-80" decoding="async" />
       <div className="ml-10 flex min-h-30 items-center">
         <OrbitingCircles
           radius={135}

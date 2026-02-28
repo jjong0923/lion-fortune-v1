@@ -15,6 +15,9 @@ function Card({ selected = false, onClick }: CardProps) {
       <img
         src={CardImg}
         alt="card"
+        loading="eager"
+        decoding="async"
+        draggable={false}
         className={`opacity-90 shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-all duration-200 ${
           selected
             ? "-translate-y-3 scale-105 shadow-[0_20px_50px_rgba(255,255,255,0.35)] brightness-110"

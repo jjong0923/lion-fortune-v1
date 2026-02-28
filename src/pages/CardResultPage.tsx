@@ -21,6 +21,9 @@ function CardResultPage() {
       <img
         src={selectedFortune.image}
         alt={`fortune-card-${selectedFortune.id}`}
+        loading="eager"
+        decoding="async"
+        draggable={false}
         className="animate-in zoom-in-90 mb-7 w-36 shadow-[0_12px_30px_rgba(0,0,0,0.35)] duration-300"
       />
 
