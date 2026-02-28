@@ -10,7 +10,7 @@ function FortuneCard({ title, description }: FortuneCardProps) {
         {title}
       </span>
       <span
-        className="text-center text-[13px] leading-120 font-semibold whitespace-pre-wrap"
+        className="max-w-50 text-center text-[13px] leading-120 font-semibold whitespace-pre-wrap"
         style={{ fontFamily: "Pretendard, sans-serif" }}
       >
         {description}
