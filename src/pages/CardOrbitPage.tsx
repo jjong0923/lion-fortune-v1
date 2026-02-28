@@ -25,10 +25,10 @@ function CardOrbitPage() {
   };
 
   return (
-    <div className="relative mt-40 flex flex-col gap-35">
+    <div className="relative mt-35 flex flex-col gap-40">
       <img src={LogoImg} className="absolute opacity-80" />
-      <div className="ml-12 flex min-h-30 items-center">
-        <OrbitingCircles radius={130} iconSize={50} speed={3}>
+      <div className="ml-10 flex min-h-30 items-center">
+        <OrbitingCircles radius={135} iconSize={55} speed={3}>
           {outerOrbitCardIds.map((cardId) =>
             selectedCardId === cardId ? (
               <div key={cardId} className="size-full" />
@@ -37,7 +37,7 @@ function CardOrbitPage() {
             ),
           )}
         </OrbitingCircles>
-        <OrbitingCircles radius={70} iconSize={35} reverse speed={3}>
+        <OrbitingCircles radius={75} iconSize={40} reverse speed={3}>
           {innerOrbitCardIds.map((cardId) =>
             selectedCardId === cardId ? (
               <div key={cardId} className="size-full" />
