@@ -5,11 +5,8 @@
 @font-face {
   font-family: "Jalnan 2";
   src:
-    local("Jalnan2"),
-    url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Jalnan2.woff2")
-      format("woff2"),
-    url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2404@1.0/Jalnan2.woff")
-      format("woff");
+    url("/fonts/Jalnan2.woff2") format("woff2"),
+    url("/fonts/JalnanOTF00.woff") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
