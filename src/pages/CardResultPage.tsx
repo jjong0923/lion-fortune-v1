@@ -271,7 +271,10 @@ function CardResultPage() {
     }, 900);
   };
 
-  const openInstagramAfterDelay = (delayMs = 250) => {
+  const DOWNLOAD_TO_INSTAGRAM_DELAY_MS = 1400;
+  const IOS_DOWNLOAD_TO_INSTAGRAM_DELAY_MS = 1800;
+
+  const openInstagramAfterDelay = (delayMs = DOWNLOAD_TO_INSTAGRAM_DELAY_MS) => {
     window.setTimeout(() => {
       openInstagram();
     }, delayMs);
@@ -293,7 +296,7 @@ function CardResultPage() {
         window.location.href = iosDataUrl;
       }
 
-      openInstagramAfterDelay();
+      openInstagramAfterDelay(IOS_DOWNLOAD_TO_INSTAGRAM_DELAY_MS);
       return;
     }
 
@@ -309,7 +312,7 @@ function CardResultPage() {
     link.click();
     link.remove();
 
-    openInstagramAfterDelay();
+    openInstagramAfterDelay(DOWNLOAD_TO_INSTAGRAM_DELAY_MS);
   };
 
   if (!selectedFortune) {
