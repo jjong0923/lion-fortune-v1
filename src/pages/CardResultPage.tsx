@@ -189,7 +189,6 @@ function CardResultPage() {
   const { cardId } = useParams();
   const selectedCardId = Number(cardId);
 
-  const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [iosDataUrl, setIosDataUrl] = useState<string | null>(null);
 
@@ -218,7 +217,6 @@ function CardResultPage() {
         return;
       }
 
-      setIsPreparingImage(true);
       setDownloadUrl(null);
       setIosDataUrl(null);
 
@@ -243,9 +241,10 @@ function CardResultPage() {
             setIosDataUrl(dataUrl);
           }
         }
-      } finally {
+      } catch {
         if (!cancelled) {
-          setIsPreparingImage(false);
+          setDownloadUrl(null);
+          setIosDataUrl(null);
         }
       }
     };
@@ -279,7 +278,7 @@ function CardResultPage() {
   };
 
   const handleDownloadAndShare = () => {
-    if (isPreparingImage || !selectedFortune) {
+    if (!selectedFortune) {
       return;
     }
 
@@ -347,8 +346,7 @@ function CardResultPage() {
       <button
         type="button"
         onClick={handleDownloadAndShare}
-        disabled={isPreparingImage}
-        className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] disabled:cursor-not-allowed disabled:opacity-70"
+        className="tracking-25 mt-4 h-8 w-full max-w-65.5 cursor-pointer rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175]"
       >
         인스타그램 공유하기
       </button>
