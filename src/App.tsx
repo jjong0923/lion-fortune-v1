@@ -11,10 +11,16 @@ function App() {
     const ua = navigator.userAgent.toLowerCase();
     const isAndroid = /android/.test(ua);
     const isIOS = /iphone|ipad|ipod/.test(ua);
-    const isChrome =
+    const isInAppBrowser =
+      /kakaotalk|everytime|everytimeapp|instagram|fb_iab|fban|fbav|line|naver|daumapps|twitter|x-app|snapchat|weibo|micromessenger|inapp/.test(
+        ua
+      );
+    const isWebView = /; wv\)|\bwv\b|version\/[\d.]+.*chrome/.test(ua);
+    const isChromeToken =
       (/chrome|crios/.test(ua) &&
         !/edg|edge|opr|opera|samsungbrowser|whale/.test(ua)) ||
       /chromium/.test(ua);
+    const isChrome = isChromeToken && !isWebView && !isInAppBrowser;
 
     if (isChrome || (!isAndroid && !isIOS)) {
       return;
