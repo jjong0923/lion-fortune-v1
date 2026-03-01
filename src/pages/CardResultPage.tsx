@@ -17,7 +17,12 @@ function drawRoundedRect(
   context.lineTo(x + width - radius, y);
   context.quadraticCurveTo(x + width, y, x + width, y + radius);
   context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height,
+  );
   context.lineTo(x + radius, y + height);
   context.quadraticCurveTo(x, y + height, x, y + height - radius);
   context.lineTo(x, y + radius);
@@ -103,7 +108,12 @@ async function createInstagramShareImage(
     throw new Error("Failed to create canvas context");
   }
 
-  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
   gradient.addColorStop(0, "#1F3175");
   gradient.addColorStop(1, "#0A1136");
   context.fillStyle = gradient;
@@ -149,7 +159,12 @@ async function createInstagramShareImage(
   context.fillStyle = "#1f2937";
   context.font = "600 30px Pretendard, sans-serif";
 
-  const lines = splitLinesByWidth(context, description.replace(/\r/g, ""), 720, 4);
+  const lines = splitLinesByWidth(
+    context,
+    description.replace(/\r/g, ""),
+    720,
+    4,
+  );
   const lineHeight = 42;
   const textStartY = cardY + 130;
 
@@ -175,7 +190,6 @@ function CardResultPage() {
   const selectedCardId = Number(cardId);
 
   const [isPreparingImage, setIsPreparingImage] = useState(false);
-  const [isReadyToOpenInstagram, setIsReadyToOpenInstagram] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [iosDataUrl, setIosDataUrl] = useState<string | null>(null);
 
@@ -205,7 +219,6 @@ function CardResultPage() {
       }
 
       setIsPreparingImage(true);
-      setIsReadyToOpenInstagram(false);
       setDownloadUrl(null);
       setIosDataUrl(null);
 
@@ -259,13 +272,14 @@ function CardResultPage() {
     }, 900);
   };
 
+  const openInstagramAfterDelay = (delayMs = 250) => {
+    window.setTimeout(() => {
+      openInstagram();
+    }, delayMs);
+  };
+
   const handleDownloadAndShare = () => {
     if (isPreparingImage || !selectedFortune) {
-      return;
-    }
-
-    if (isReadyToOpenInstagram) {
-      openInstagram();
       return;
     }
 
@@ -280,7 +294,7 @@ function CardResultPage() {
         window.location.href = iosDataUrl;
       }
 
-      setIsReadyToOpenInstagram(true);
+      openInstagramAfterDelay();
       return;
     }
 
@@ -296,7 +310,7 @@ function CardResultPage() {
     link.click();
     link.remove();
 
-    setIsReadyToOpenInstagram(true);
+    openInstagramAfterDelay();
   };
 
   if (!selectedFortune) {
@@ -314,11 +328,18 @@ function CardResultPage() {
         className="animate-in zoom-in-90 mb-7 w-36 shadow-[0_12px_30px_rgba(0,0,0,0.35)] duration-300"
       />
 
-      <FortuneCard title="사자의 운세" description={selectedFortune.description} />
+      <FortuneCard
+        title="사자의 운세"
+        description={selectedFortune.description}
+      />
 
       <div className="mt-4 flex max-w-65.5 gap-4">
         <Button onNavigate={() => navigate("/")}>메인으로</Button>
-        <Button onNavigate={() => (window.location.href = "https://www.likelionknu.com")}>
+        <Button
+          onNavigate={() =>
+            (window.location.href = "https://www.likelionknu.com")
+          }
+        >
           멋사 지원하러가기
         </Button>
       </div>
@@ -327,18 +348,10 @@ function CardResultPage() {
         type="button"
         onClick={handleDownloadAndShare}
         disabled={isPreparingImage}
-        className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] md:hidden disabled:cursor-not-allowed disabled:opacity-70"
+        className="tracking-25 mt-4 h-8 w-full max-w-65.5 rounded-[10px] bg-[#ffbb00] text-[13px]/[12px] text-[#1f3175] disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPreparingImage
-          ? "이미지 준비 중..."
-          : isReadyToOpenInstagram
-            ? "인스타그램 열기"
-            : "이미지 저장하기"}
+        인스타그램 공유하기
       </button>
-
-      <p className="mt-2 text-[11px] text-white/70 md:hidden">
-        1회 클릭: 이미지 저장, 2회 클릭: 인스타그램 열기
-      </p>
     </section>
   );
 }
