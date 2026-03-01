@@ -147,9 +147,12 @@ function CardCanvas3DTestPage() {
         context.rotate(isSelected ? 0 : card.yaw * 0.12);
         context.scale(scaleX, 1);
         context.globalAlpha = alpha;
-        context.shadowColor = "rgba(0, 0, 0, 0.32)";
-        context.shadowBlur = isSelected ? 28 : 18 * card.perspective;
-        context.shadowOffsetY = isSelected ? 12 : 9 * card.perspective;
+        context.shadowColor = isSelected
+          ? "rgba(0, 0, 0, 0.48)"
+          : "rgba(0, 0, 0, 0.32)";
+        context.shadowBlur = isSelected ? 34 : 18 * card.perspective;
+        context.shadowOffsetY = isSelected ? 16 : 9 * card.perspective;
+
         context.drawImage(
           card.image,
           -drawWidth * 0.5,
@@ -157,6 +160,7 @@ function CardCanvas3DTestPage() {
           drawWidth,
           drawHeight,
         );
+
         context.restore();
 
         renderedCards.push({
