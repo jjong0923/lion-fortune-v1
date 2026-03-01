@@ -5,6 +5,7 @@ import MainPage from "./pages/MainPage";
 import Layout from "./layouts/Layout";
 import CardOrbitPage from "./pages/CardOrbitPage";
 import CardResultPage from "./pages/CardResultPage";
+import CardCanvas3DTestPage from "./pages/CardCanvas3DTestPage";
 
 function App() {
   useEffect(() => {
@@ -13,7 +14,7 @@ function App() {
     const isIOS = /iphone|ipad|ipod/.test(ua);
     const isInAppBrowser =
       /kakaotalk|everytime|everytimeapp|instagram|fb_iab|fban|fbav|line|naver|daumapps|twitter|x-app|snapchat|weibo|micromessenger|inapp/.test(
-        ua
+        ua,
       );
     const isWebView = /; wv\)|\bwv\b|version\/[\d.]+.*chrome/.test(ua);
     const isChromeToken =
@@ -38,7 +39,8 @@ function App() {
     if (isIOS) {
       const chromeSchemeUrl = currentUrl.replace(
         /^https?/,
-        (protocol) => `${protocol === "https" ? "googlechromes" : "googlechrome"}`
+        (protocol) =>
+          `${protocol === "https" ? "googlechromes" : "googlechrome"}`,
       );
       window.location.href = chromeSchemeUrl;
     }
@@ -49,8 +51,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
-          <Route path="/card" element={<CardOrbitPage />} />
+          <Route path="/card" element={<CardCanvas3DTestPage />} />
           <Route path="/result/:cardId" element={<CardResultPage />} />
+          <Route path="/card-3d-test" element={<CardOrbitPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
